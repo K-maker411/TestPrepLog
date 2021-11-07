@@ -1,0 +1,112 @@
+﻿@page "/SatPages/EditSatPracticeTest/{Id:int}"
+
+@using DataAccessLibrary
+@using DataAccessLibrary.Models
+@using TestPrepLogWebsite.Models
+
+@inject ISatPracticeTestData _db
+@inject NavigationManager Nav
+
+<h3>Update SAT</h3>
+
+@if (newSatPracticeTest is not null)
+{
+    <EditForm Model="@newSatPracticeTest" OnValidSubmit="@UpdateSatPracticeTest">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div>
+            <label>Date Taken:  </label>
+            <MudDatePicker PickerVariant="PickerVariant.Dialog" Color="Color.Success" Rounded="true" @bind-Date="newSatPracticeTest.dateTaken" Style="margin:5px">@newSatPracticeTest.dateTaken</MudDatePicker>
+        </div>
+
+        <div>
+            <label># of Reading Correct (0 - 52):  </label>
+            <MudInput T="int" @bind-Value="newSatPracticeTest.readingCorrect" Style="margin:5px">@newSatPracticeTest.readingCorrect</MudInput>
+        </div>
+
+        <div>
+            <label># of Writing Correct (0 - 44):  </label>
+            <MudInput T="int" @bind-Value="newSatPracticeTest.writingCorrect" Style="margin:5px">@newSatPracticeTest.writingCorrect</MudInput>
+        </div>
+
+        <div>
+            <label># of Math (Non-Calc) Correct (0 - 20):  </label>
+            <MudInput T="int" @bind-Value="newSatPracticeTest.mathNonCalcCorrect" Style="margin:5px">@newSatPracticeTest.mathNonCalcCorrect</MudInput>
+        </div>
+
+        <div>
+            <label># of Math (Calc) Correct (0 - 38):  </label>
+            <MudInput T="int" @bind-Value="newSatPracticeTest.mathCalcCorrect" Style="margin:5px">@newSatPracticeTest.mathCalcCorrect</MudInput>
+        </div>
+
+        <div>
+            <label>Final Score (400 - 1600):  </label>
+            <MudInput T="int" @bind-Value="newSatPracticeTest.testScore" Style="margin:5px">@newSatPracticeTest.testScore</MudInput>
+        </div>
+
+
+        <div>
+            <label>Date Administered:  </label>
+            <MudDatePicker PickerVariant="PickerVariant.Dialog" Color="Color.Success" Rounded="true" @bind-Date="newSatPracticeTest.dateAdministered" Style="margin:5px">@newSatPracticeTest.dateAdministered</MudDatePicker>
+        </div>
+
+        <div>
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Style="margin-top: 10px;margin-bottom:20px">Submit</MudButton>
+        </div>
+
+
+    </EditForm>
+}
+
+
+@code {
+
+    [Parameter]
+    public int Id { get; set; }
+
+    private List<SatPracticeTestModel> tests;
+
+    private DisplaySatPracticeTestModel newSatPracticeTest;
+
+    public override Task SetParametersAsync(ParameterView parameters)
+    {
+        return base.SetParametersAsync(parameters);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        tests = await _db.GetSatPracticeTest(Id);
+        newSatPracticeTest = new DisplaySatPracticeTestModel
+        {
+            dateTaken = tests[0].dateTaken,
+            readingCorrect = tests[0].readingCorrect,
+            writingCorrect = tests[0].writingCorrect,
+            mathNonCalcCorrect = tests[0].mathNonCalcCorrect,
+            mathCalcCorrect = tests[0].mathCalcCorrect,
+            testScore = tests[0].testScore,
+            dateAdministered = tests[0].dateAdministered
+
+        };
+    }
+
+    private async Task UpdateSatPracticeTest()
+    {
+        SatPracticeTestModel test = new SatPracticeTestModel
+        {
+            id = tests[0].id,
+            dateTaken = newSatPracticeTest.dateTaken,
+            readingCorrect = newSatPracticeTest.readingCorrect,
+            writingCorrect = newSatPracticeTest.writingCorrect,
+            mathNonCalcCorrect = newSatPracticeTest.mathNonCalcCorrect,
+            mathCalcCorrect = newSatPracticeTest.mathCalcCorrect,
+            testScore = newSatPracticeTest.testScore,
+            dateAdministered = newSatPracticeTest.dateAdministered
+        };
+
+        await _db.UpdateSatPracticeTest(test);
+
+        Nav.NavigateTo("/SatPages/SatPracticeTests");
+    }
+
+}

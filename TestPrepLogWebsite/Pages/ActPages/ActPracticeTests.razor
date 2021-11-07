@@ -1,0 +1,151 @@
+﻿@page "/ActPages/ActPracticeTests"
+
+@using DataAccessLibrary
+@using DataAccessLibrary.Models
+@using TestPrepLogWebsite.Models
+@using DataAccessLibrary.ActDataAccess
+
+@inject IActPracticeTestData _db
+@inject NavigationManager NavManager
+@inject IJSRuntime JSRuntime
+
+<h1>ACT Practice Tests</h1>
+
+<h4>Insert New Practice SAT by Entering the Following Fields</h4>
+
+<EditForm Model="@newActPracticeTest" OnValidSubmit="@InsertActPracticeTest">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div>
+        <label>Date Taken:  </label>
+        <MudDatePicker PickerVariant="PickerVariant.Dialog" Color="Color.Success" Rounded="true" @bind-Date="newActPracticeTest.dateTaken" Style="margin:5px" />
+    </div>
+
+    <div>
+        <label># of English Correct (0 - 75):  </label>
+        <MudInput T="int" @bind-Value="newActPracticeTest.englishCorrect" Style="margin:5px" />
+    </div>
+
+    <div>
+        <label># of Math Correct (0 - 60):  </label>
+        <MudInput T="int" @bind-Value="newActPracticeTest.mathCorrect" Style="margin:5px" />
+    </div>
+
+    <div>
+        <label># of Reading Correct (0 - 40):  </label>
+        <MudInput T="int" @bind-Value="newActPracticeTest.readingCorrect" Style="margin:5px" />
+    </div>
+
+    <div>
+        <label># of Science Correct (0 - 40):  </label>
+        <MudInput T="int" @bind-Value="newActPracticeTest.scienceCorrect" Style="margin:5px" />
+    </div>
+
+    <div>
+        <label>Final Score (1 - 36):  </label>
+        <MudInput T="int" @bind-Value="newActPracticeTest.testScore" Style="margin:5px" />
+    </div>
+
+
+    <div>
+        <label>Date Administered:  </label>
+        <MudDatePicker PickerVariant="PickerVariant.Dialog" Color="Color.Success" Rounded="true" @bind-Date="newActPracticeTest.dateAdministered" Style="margin:5px" />
+    </div>
+
+    <div>
+        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Style="margin-top: 10px;margin-bottom:20px">Submit</MudButton>
+    </div>
+
+
+</EditForm>
+
+<h4>ACT Practice Test List</h4>
+
+@if (tests is null)
+{
+    <MudProgressCircular Color="Color.Primary" Style="position:absolute;height:70px;width:70px;top:60%;left:50%;margin:-35px 0 0 -35px" Indeterminate="true" />
+}
+else
+{
+<div>
+    <MudSimpleTable Style="margin-top:10px">
+        <thead>
+            <tr>
+                <th>Date Taken</th>
+                <th>English Correct</th>
+                <th>Math Correct</th>
+                <th>Reading Correct</th>
+                <th>Science Correct</th>
+                <th>Test Score</th>
+                <th>Date Administered</th>
+                <th>Edit Test</th>
+                <th>Delete Test</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var test in tests)
+            {
+            <tr>
+                <td>@test.dateTaken?.ToString("MM/dd/yyyy")</td>
+                <td>@test.englishCorrect</td>
+                <td>@test.mathCorrect</td>
+                <td>@test.readingCorrect</td>
+                <td>@test.scienceCorrect</td>
+                <td>@test.testScore</td>
+                <td>@test.dateAdministered?.ToString("MM/dd/yyyy")</td>
+                <td>
+                    <form action="/ActPages/EditActPracticeTest/@test.id">
+                        <MudButton Variant="Variant.Filled" ButtonType="ButtonType.Submit" Color="Color.Secondary">Edit</MudButton>
+                    </form>
+                </td>
+                <td>
+                    <MudButton Variant="Variant.Filled" Color="Color.Error" @onclick="(() => DeleteActPracticeTest(test.id))">Delete</MudButton>
+                </td>
+            </tr>
+            }
+        </tbody>
+    </MudSimpleTable>
+</div>
+}
+
+@code {
+    private List<ActPracticeTestModel> tests;
+    private DisplayActPracticeTestModel newActPracticeTest = new DisplayActPracticeTestModel();
+
+    protected async override Task OnInitializedAsync()
+    {
+        tests = await _db.GetActPracticeTests();
+    }
+
+    private async Task InsertActPracticeTest()
+    {
+        ActPracticeTestModel act = new ActPracticeTestModel
+        {
+            dateTaken = newActPracticeTest.dateTaken,
+            englishCorrect = newActPracticeTest.englishCorrect,
+            mathCorrect = newActPracticeTest.mathCorrect,
+            readingCorrect = newActPracticeTest.readingCorrect,
+            scienceCorrect = newActPracticeTest.scienceCorrect,
+            testScore = newActPracticeTest.testScore,
+            dateAdministered = newActPracticeTest.dateAdministered
+        };
+
+        await _db.InsertActPracticeTest(act);
+
+        // not very efficient, need to find workaround
+        tests = await _db.GetActPracticeTests();
+
+        newActPracticeTest = new DisplayActPracticeTestModel();
+    }
+
+    private async Task DeleteActPracticeTest(int id)
+    {
+        if (!await JSRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to delete this test?"))
+        {
+            return;
+        }
+        tests.RemoveAll(test => test.id == id);
+        await _db.DeleteActPracticeTest(id);
+    }
+}

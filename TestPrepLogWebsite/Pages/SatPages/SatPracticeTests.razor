@@ -1,0 +1,220 @@
+﻿@page "/SatPages/SatPracticeTests"
+
+@using DataAccessLibrary
+@using DataAccessLibrary.Models
+@using TestPrepLogWebsite.Models
+
+@inject ISatPracticeTestData _db
+@inject NavigationManager NavManager
+@inject IJSRuntime JSRuntime 
+@inject ISnackbar Snackbar
+<h1>SAT Practice Tests</h1>
+
+<h4>Insert New Practice SAT by Entering the Following Fields</h4>
+
+<EditForm Model="@newSatPracticeTest" OnValidSubmit="@InsertSatPracticeTest">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+
+    @*<InputText id="dateTaken" @bind-Value="newSatPracticeTest.dateTaken.ToShortDateString()"></InputText>
+            <InputText id="readingCorrect" @bind-Value="newSatPracticeTest.readingCorrect.ToString()" />
+        <InputText id="writingCorrect" @bind-Value="newSatPracticeTest.writingCorrect.ToString()" />
+        <InputText id="mathNonCalcCorrect" @bind-Value="newSatPracticeTest.mathNonCalcCorrect.ToString()" />
+        <InputText id="mathCalcCorrect" @bind-Value="newSatPracticeTest.mathCalcCorrect.ToString()" />
+        <InputText id="dateAdministered" @bind-Value="newSatPracticeTest.dateAdministered.ToShortDateString()" />*@
+
+
+
+    @*<InputNumber id="readingCorrect" @bind-Value="newSatPracticeTest.readingCorrect" />
+        <InputNumber id="writingCorrect" @bind-Value="newSatPracticeTest.writingCorrect" />
+        <InputNumber id="mathNonCalcCorrect" @bind-Value="newSatPracticeTest.mathNonCalcCorrect" />
+        <InputNumber id="mathCalcCorrect" @bind-Value="newSatPracticeTest.mathCalcCorrect" />
+        <InputNumber id="testScore" @bind-Value="newSatPracticeTest.testScore" />
+        <InputDate id="dateAdministered" @bind-Value="newSatPracticeTest.dateAdministered" />*@
+
+    <div>
+        <label>Date Taken:  </label>
+        <MudDatePicker PickerVariant="PickerVariant.Dialog" Color="Color.Success" Rounded="true" @bind-Date="newSatPracticeTest.dateTaken" Style="margin:5px" />
+    </div>
+
+    <div>
+        <label># of Reading Correct (0 - 52):  </label>
+        <MudInput T="int" @bind-Value="newSatPracticeTest.readingCorrect" Style="margin:5px" />
+    </div>
+
+    <div>
+        <label># of Writing Correct (0 - 44):  </label>
+        <MudInput T="int" @bind-Value="newSatPracticeTest.writingCorrect" Style="margin:5px" />
+    </div>
+
+    <div>
+        <label># of Math (Non-Calc) Correct (0 - 20):  </label>
+        <MudInput T="int" @bind-Value="newSatPracticeTest.mathNonCalcCorrect" Style="margin:5px" />
+    </div>
+
+    <div>
+        <label># of Math (Calc) Correct (0 - 38):  </label>
+        <MudInput T="int" @bind-Value="newSatPracticeTest.mathCalcCorrect" Style="margin:5px" />
+    </div>
+
+    <div>
+        <label>Final Score (400 - 1600):  </label>
+        <MudInput T="int" @bind-Value="newSatPracticeTest.testScore" Style="margin:5px" />
+    </div>
+
+
+    <div>
+        <label>Date Administered:  </label>
+        <MudDatePicker PickerVariant="PickerVariant.Dialog" Color="Color.Success" Rounded="true" @bind-Date="newSatPracticeTest.dateAdministered" Style="margin:5px" />
+    </div>
+
+    <div>
+        <InputFile id="satFrontImageInput" OnChange="@UploadFrontPageImage" hidden accept=".jpg, .jpeg, .png"></InputFile>
+        <MudButton HtmlTag="label" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Filled.CloudUpload" for="satFrontImageInput">Upload Front Page Image</MudButton>
+        <div class="row">
+            <img src="@imgUrl" style="margin:5px">
+        </div>
+    </div>
+
+    <div>
+        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Style="margin-top: 10px;margin-bottom:20px">Submit</MudButton>
+    </div>
+
+
+
+
+</EditForm>
+
+<h4>SAT Practice Test List</h4>
+
+@if (tests is null)
+{
+    <MudProgressCircular Color="Color.Primary" Style="position:absolute;height:70px;width:70px;top:60%;left:50%;margin:-35px 0 0 -35px" Indeterminate="true" />
+}
+else
+{
+    <div>
+        <MudSimpleTable Style="margin-top:10px">
+            <thead>
+                <tr>
+                    @*<th>Id</th>*@
+                    <th>Date Taken</th>
+                    <th>Reading Correct</th>
+                    <th>Writing Correct</th>
+                    <th>Non-Calculator Math Correct</th>
+                    <th>With-Calculator Math Correct</th>
+                    <th>Total Score</th>
+                    <th>Date Administered</th>
+                    <th>Front Page Image</th>
+                    <th>Edit Test</th>
+                    <th>Delete Test</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var test in tests)
+                {
+                    <tr>
+                        @*<td>@test.id</td>*@
+                        <td>@test.dateTaken?.ToString("MM/dd/yyyy")</td>
+                        <td>@test.readingCorrect</td>
+                        <td>@test.writingCorrect</td>
+                        <td>@test.mathNonCalcCorrect</td>
+                        <td>@test.mathCalcCorrect</td>
+                        <td>@test.testScore</td>
+                        <td>@test.dateAdministered?.ToString("MM/dd/yyyy")</td>
+                        @if (test.frontPageImage != null)
+                        {
+                            <td>
+                                <img src="@test.frontPageImageUrl" width="75" height="75" />
+                            </td>
+                                
+                        }
+                        else
+                        {
+                            <td>
+                                No Front Page Attached
+                            </td>
+                        }
+                        <td>
+                            <form action="/SatPages/EditSatPracticeTest/@test.id">
+                                <MudButton Variant="Variant.Filled" ButtonType="ButtonType.Submit" Color="Color.Secondary">Edit</MudButton>
+                            </form>
+                            @*Will eventually implement button, but for now, use <a>*@
+                            @*<MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Secondary" @onclick="@OnEditClick">Edit</MudButton>*@
+                        </td>
+                        <td>
+                            <MudButton Variant="Variant.Filled" Color="Color.Error" @onclick="(() => DeleteSatPracticeTest(test.id))">Delete</MudButton>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </MudSimpleTable>
+    </div>
+}
+
+
+
+@code {
+    private List<SatPracticeTestModel> tests;
+    private DisplaySatPracticeTestModel newSatPracticeTest = new DisplaySatPracticeTestModel();
+    private string imgUrl = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        tests = await _db.GetSatPracticeTests();
+    }
+
+    private async Task UploadFrontPageImage(InputFileChangeEventArgs e)
+    {
+        IBrowserFile imgFile = e.File;
+        var buffers = new byte[imgFile.Size];
+        await imgFile.OpenReadStream(maxAllowedSize: 5242880).ReadAsync(buffers);
+        newSatPracticeTest.frontPageImage = buffers;
+        string imageType = imgFile.ContentType;
+        imgUrl = $"data:{imageType};base64,{Convert.ToBase64String(buffers)}";
+        newSatPracticeTest.frontPageImageUrl = imgUrl;
+    }
+
+    private async Task InsertSatPracticeTest()
+    {
+        SatPracticeTestModel sat = new SatPracticeTestModel
+        {
+            dateTaken = newSatPracticeTest.dateTaken,
+            readingCorrect = newSatPracticeTest.readingCorrect,
+            writingCorrect = newSatPracticeTest.writingCorrect,
+            mathNonCalcCorrect = newSatPracticeTest.mathNonCalcCorrect,
+            mathCalcCorrect = newSatPracticeTest.mathCalcCorrect,
+            testScore = newSatPracticeTest.testScore,
+            dateAdministered = newSatPracticeTest.dateAdministered,
+            frontPageImage = newSatPracticeTest.frontPageImage,
+            frontPageImageUrl = newSatPracticeTest.frontPageImageUrl
+        };
+
+        await _db.InsertSatPracticeTest(sat);
+
+        // not very efficient, need to find workaround
+        tests = await _db.GetSatPracticeTests();
+
+        newSatPracticeTest = new DisplaySatPracticeTestModel();
+    }
+
+    public async Task DeleteSatPracticeTest(int id)
+    {
+        if (!await JSRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to delete this test?"))
+        {
+            return;
+        }
+        tests.RemoveAll(test => test.id == id);
+        await _db.DeleteSatPracticeTest(id);
+    }
+
+    @*private void OpenDialog()
+        {
+            DialogParameters parameters = new DialogParameters();
+            parameters.Add("id", );
+            DialogService.Show<Dialog>("Confirm Deletion", parameters);
+        }*@
+
+
+}

@@ -1,0 +1,110 @@
+﻿@page "/ActPages/EditActPracticeTest/{Id:int}"
+
+@using DataAccessLibrary
+@using DataAccessLibrary.Models
+@using TestPrepLogWebsite.Models
+@using DataAccessLibrary.ActDataAccess
+
+@inject IActPracticeTestData _db
+@inject NavigationManager Nav
+
+<h3>Update ACT</h3>
+
+@if (newActPracticeTest is not null)
+{
+    <EditForm Model="@newActPracticeTest" OnValidSubmit="@UpdateActPracticeTest">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div>
+            <label>Date Taken:  </label>
+            <MudDatePicker PickerVariant="PickerVariant.Dialog" Color="Color.Success" Rounded="true" @bind-Date="newActPracticeTest.dateTaken" Style="margin:5px" />
+        </div>
+
+        <div>
+            <label># of English Correct (0 - 75):  </label>
+            <MudInput T="int" @bind-Value="newActPracticeTest.englishCorrect" Style="margin:5px" />
+        </div>
+
+        <div>
+            <label># of Math Correct (0 - 60):  </label>
+            <MudInput T="int" @bind-Value="newActPracticeTest.mathCorrect" Style="margin:5px" />
+        </div>
+
+        <div>
+            <label># of Reading Correct (0 - 40):  </label>
+            <MudInput T="int" @bind-Value="newActPracticeTest.readingCorrect" Style="margin:5px" />
+        </div>
+
+        <div>
+            <label># of Science Correct (0 - 40):  </label>
+            <MudInput T="int" @bind-Value="newActPracticeTest.scienceCorrect" Style="margin:5px" />
+        </div>
+
+        <div>
+            <label>Final Score (1 - 36):  </label>
+            <MudInput T="int" @bind-Value="newActPracticeTest.testScore" Style="margin:5px" />
+        </div>
+
+
+        <div>
+            <label>Date Administered:  </label>
+            <MudDatePicker PickerVariant="PickerVariant.Dialog" Color="Color.Success" Rounded="true" @bind-Date="newActPracticeTest.dateAdministered" Style="margin:5px" />
+        </div>
+
+        <div>
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Style="margin-top: 10px;margin-bottom:20px">Submit</MudButton>
+        </div>
+
+
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private List<ActPracticeTestModel> tests;
+
+    private DisplayActPracticeTestModel newActPracticeTest;
+
+    public override Task SetParametersAsync(ParameterView parameters)
+    {
+        return base.SetParametersAsync(parameters);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        tests = await _db.GetActPracticeTest(Id);
+        newActPracticeTest = new DisplayActPracticeTestModel
+        {
+            dateTaken = tests[0].dateTaken,
+            englishCorrect = tests[0].englishCorrect,
+            mathCorrect = tests[0].mathCorrect,
+            readingCorrect = tests[0].readingCorrect,
+            scienceCorrect = tests[0].scienceCorrect,
+            testScore = tests[0].testScore,
+            dateAdministered = tests[0].dateAdministered
+
+        };
+    }
+
+    private async Task UpdateActPracticeTest()
+    {
+        ActPracticeTestModel test = new ActPracticeTestModel
+        {
+            id = tests[0].id,
+            dateTaken = newActPracticeTest.dateTaken,
+            englishCorrect = newActPracticeTest.englishCorrect,
+            mathCorrect = newActPracticeTest.mathCorrect,
+            readingCorrect = newActPracticeTest.readingCorrect,
+            scienceCorrect = newActPracticeTest.scienceCorrect,
+            testScore = newActPracticeTest.testScore,
+            dateAdministered = newActPracticeTest.dateAdministered
+        };
+
+        await _db.UpdateActPracticeTest(test);
+
+        Nav.NavigateTo("/ActPages/ActPracticeTests");
+    }
+}
